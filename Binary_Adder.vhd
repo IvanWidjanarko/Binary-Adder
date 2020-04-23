@@ -1,0 +1,59 @@
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+
+ENTITY Binary_Adder IS
+	PORT 
+	(
+		IN_A	:	IN		STD_LOGIC;
+		IN_B	:	IN		STD_LOGIC;
+		CLOCK :	IN		STD_LOGIC;
+		OUT_X	:	OUT	STD_LOGIC
+	);
+END Binary_Adder;
+
+ARCHITECTURE Binary_Add OF Binary_Adder IS
+	TYPE STATE IS (NC, C, S);
+	SIGNAL PRESENT_STATE : STATE := NC;
+	SIGNAL NEXT_STATE : STATE;
+
+BEGIN
+	PROCESS(CLOCK,PRESENT_STATE,IN_A,IN_B) IS
+	BEGIN
+		CASE PRESENT_STATE IS
+			WHEN NC =>
+				IF (IN_A = '1' AND IN_B = '1') THEN
+					NEXT_STATE <= C;
+				ELSIF ((IN_A = '0' AND IN_B = '0') OR(IN_A = '1' AND IN_B = '0') OR (IN_A = '0' AND IN_B = '1')) THEN
+					NEXT_STATE <= NC;
+				ELSE
+					NEXT_STATE <= S;
+				END IF;
+			
+			WHEN C =>
+				IF (IN_A = '0' AND IN_B = '0') THEN
+					NEXT_STATE <= NC;
+				ELSIF ((IN_A = '1' AND IN_B = '1') OR (IN_A = '1' AND IN_B = '0') OR (IN_A = '0' AND IN_B = '1')) THEN
+					NEXT_STATE <= C;
+				ELSE
+					NEXT_STATE <= S;
+				END IF;
+			WHEN OTHERS =>
+				NULL;
+		END CASE;
+	END PROCESS;
+
+	PROCESS(CLOCK,PRESENT_STATE) IS
+	BEGIN
+		IF(CLOCK'EVENT AND CLOCK = '1') THEN
+			CASE PRESENT_STATE IS
+				WHEN NC =>
+					OUT_X <= IN_A XOR IN_B;
+				WHEN C =>
+					OUT_X <= NOT(IN_A XOR IN_B);
+				WHEN OTHERS =>
+					NULL;
+			END CASE;
+			PRESENT_STATE <= NEXT_STATE;
+		END IF;
+	END PROCESS;
+END Binary_Add;
